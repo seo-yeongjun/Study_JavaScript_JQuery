@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>a부터 n번 b씩 증감</title>
+</head>
+<body>
+<a href="index.html">홈</a>
+<br>
+<span>a부터 n번 b씩 증감 함</span>
+<div>
+  <input id="a" type="text" placeholder="a">
+  <input id="b" type="text" placeholder="b">
+  <input id="n" type="text" placeholder="n">
+  <button type="button" id="btn">확인</button>
+</div>
+<div id="c">결과창</div>
+<script>
+  let btn = document.getElementById("btn");
+  let a = document.getElementById("a");
+  let b = document.getElementById("b")
+  let n = document.getElementById("n")
+
+  let result = document.getElementById("c");
+
+  function each(e) {
+    let num = parseInt(a.value);
+    let answer = "";
+    for (let i = 0; i < n.value; i++) {
+      answer += num + '\n';
+      num += parseInt(b.value);
+    }
+    result.innerText = answer;
+  }
+
+  btn.addEventListener("click", each);
+
+</script>
+</body>
+</html>
