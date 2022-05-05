@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<span>주소 검색</span>
+<div>
+    <label>
+        <input type="text" id="searchText">
+        <button id="searchBtn">검색</button>
+    </label>
+    <table id="addressTable">
+        <tbody>
+        <tr>
+            <td>우편번호</td>
+            <td>건물명</td>
+            <td>주소</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div id="btnArea"></div>
+</body>
+<script>
+
+    //기본 요청 데이터 포맷
+    let data = {
+        currentPage: "",
+        countPerPage: "10",
+        keyword: "",
+        resultType: "json",
+        confmKey: "U01TX0FVVEgyMDIyMDUwMzAzMjkwNjExMjUyNzE="
+    }
+
+    //요청 url
+    const url = 'https://www.juso.go.kr/addrlink/addrLinkApi.do';
+    //검색 버튼
+    const searchBtn = document.getElementById("searchBtn");
+    //검색 인풋
+    const searchText = document.getElementById("searchText");
+    //버튼 위치할 공간
+    const btnArea = document.getElementById("btnArea");
+    //이전 다음 버튼을 위한 index
+    let index = 1;
+
+    //api 요청 함수 인자로 url 과 data 를 받음
+    async function postData(url = '', data = {}) {
+        const response = await fetch(url, {
+            method: 'POST',
+            body: new URLSearchParams(data),
+        });
+        return response.json(); //전달 받은 json 데이터를 javascript 배열 로 반환함
+    }
+
+    //검색 버튼 이벤트
+    searchBtn.addEventListener('click', function () {
+        data.keyword = searchText.value; // input 검색 값 newData로
+        index = 1; //검색하면 index를 1로 해야함
+        data.currentPage = index; // input 검색 값 newData로
+
+        //api 요청 함수 call
+        postData(url, data).then(data => {
+            getAndMakeTable(data); // 정보로 부터 테이블 만들기 line 105에 함수 적어 둠.
+        })
+        // index 위한 다음 버튼 추가
+        let nextBtn = document.createElement("button");
+        nextBtn.setAttribute('onclick', 'next()');
+        nextBtn.setAttribute('id', 'btnNext');
+        nextBtn.innerText = "다음";
+        btnArea.append(nextBtn);
+
+    })
+
+    //다음 버튼 함수
+    function next() {
+        data.currentPage = ++index; // currentPage에 index를 1증가시켜 저장
+        // 버튼 생성시 keyword는 지정 되었으므로 생략해도 됨
+        postData(url, data).then(data => {
+            getAndMakeTable(data); // 정보로 부터 테이블 만들기 line 105에 함수 적어 둠.
+        })
+        if (index == 2) { //index가 2이면 이전 버튼 생성
+            let beforeBtn = document.createElement("button");
+            beforeBtn.setAttribute('onclick', 'before()');
+            beforeBtn.setAttribute('id', 'btnBefore');
+            beforeBtn.innerText = "이전";
+            document.getElementById("btnNext").before(beforeBtn); //다음 버튼 전에 이전 버튼 추가
+        }
+    }
+
+    //이전 버튼 함수
+    function before() {
+        data.currentPage = --index; // currentPage에 index를 1증가시켜 저장
+        // 버튼 생성시 keyword는 지정 되었으므로 생략해도 됨
+        postData(url, data).then(data => {
+            getAndMakeTable(data); // 정보로 부터 테이블 만들기 line 105에 함수 적어 둠.
+        })
+        if (index == 1) { //index가 1이면 이전 버튼 삭제
+            document.getElementById("btnBefore").remove();
+        }
+    }
+
+    //정보로 부터 테이블 만들기 함수
+    function getAndMakeTable(data) {
+        if (data.results.common.totalCount == 0) {//검색 결과 가 없으면
+            addressTable.append("검색 결과가 없습니다.");
+        } else {
+            const addressTable = document.getElementById("addressTable"); //table
+            addressTable.innerHTML = "    <tr>\n" +
+                "            <td>우편번호</td>\n" +
+                "            <td>건물명</td>\n" +
+                "            <td>주소</td>\n" +
+                "        </tr>"; //table 초기화
+            for (item of data.results.juso) {
+                const arr = data.results.juso;
+                const iRowCount = addressTable.rows.length; // row(tr) 수
+                const clsRow = addressTable.insertRow(iRowCount); // row(tr) 추가
+                const zipNoCell = clsRow.insertCell(0); //우편번호를 위한 td 추가
+                const bdNmCell = clsRow.insertCell(1); //건물명를 위한 td 추가
+                const jibunAddrCell = clsRow.insertCell(2); //지번 주소를 위한 td 추가
+                zipNoCell.innerHTML = item.zipNo;
+                bdNmCell.innerHTML = item.bdNm;
+                jibunAddrCell.innerHTML = item.jibunAddr;
+            }
+        }
+    }
+</script>
+</html>
